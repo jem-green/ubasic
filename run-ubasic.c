@@ -28,12 +28,6 @@
  *
  */
  
-/*
- * Modified to support simple string variables and functions by David Mitchell
- * November 2008.
- * Changes and additions are marked 'string additions' throughout
- */
-
 #include "ubasic.h"
 #include <stdio.h>
 #include <errno.h>
