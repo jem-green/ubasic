@@ -43,6 +43,8 @@
 
 static char const *ptr, *nextptr;
 
+static char const *prog;
+
 #define MAX_NUMLEN 6
 
 struct keyword_token {
@@ -119,6 +121,9 @@ get_next_token(void)
   int i;
 
   DEBUG_PRINTF("get_next_token(): '%s'\n", ptr);
+  
+  // eat all whitespace
+  while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r') ptr++;
 
   if(*ptr == 0) {
     return TOKENIZER_ENDOFINPUT;
@@ -170,8 +175,7 @@ get_next_token(void)
   return TOKENIZER_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-void
-tokenizer_goto(const char *program)
+void tokenizer_goto(const char *program)
 {
   ptr = program;
   current_token = get_next_token();
@@ -180,7 +184,8 @@ tokenizer_goto(const char *program)
 void
 tokenizer_init(const char *program)
 {
-  tokenizer_goto(program);
+  ptr = program;
+  prog = program;
   current_token = get_next_token();
 }
 /*---------------------------------------------------------------------------*/
