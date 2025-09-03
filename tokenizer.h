@@ -33,12 +33,12 @@
 #include "vartype.h"
 
 enum {
-  TOKENIZER_ERROR,
-  TOKENIZER_ENDOFINPUT,
-  TOKENIZER_NUMBER,
-  TOKENIZER_STRING,
-  TOKENIZER_VARIABLE,
-  TOKENIZER_LET,
+  TOKENIZER_ERROR,			// 0
+  TOKENIZER_ENDOFINPUT,		// 1
+  TOKENIZER_NUMBER,			// 2
+  TOKENIZER_STRING,			// 3
+  TOKENIZER_VARIABLE,		// 4
+  TOKENIZER_LET,			// 5
   TOKENIZER_PRINT,
   TOKENIZER_IF,
   TOKENIZER_THEN,
@@ -69,8 +69,8 @@ enum {
   TOKENIZER_LT,
   TOKENIZER_GT,
   TOKENIZER_EQ,
-  TOKENIZER_CR,
-  TOKENIZER_LF
+  TOKENIZER_LF,
+  TOKENIZER_CR
 };
 
 void tokenizer_goto(const char *program);
@@ -85,5 +85,8 @@ int tokenizer_finished(void);
 void tokenizer_error_print(void);
 
 char const *tokenizer_pos(void);
+char const *tokenizer_start(void);
+
+char *tokenizer_token_name(int token);
 
 #endif /* __TOKENIZER_H__ */

@@ -28,7 +28,9 @@
  *
  */
 
-#define DEBUG 0
+#define DEBUG 1
+#define VERBOSE 1
+
 
 #if DEBUG
 #define DEBUG_PRINTF(...)  printf(__VA_ARGS__)
@@ -41,7 +43,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-static char const *ptr, *nextptr;
+static char const *ptr, *nextptr, *startptr;
 
 static char const *prog;
 
@@ -74,13 +76,50 @@ static const struct keyword_token keywords[] = {
   {NULL, TOKENIZER_ERROR}
 };
 
+static const struct keyword_token tokens[] = {
+	{"TOKENIZER_ERROR",TOKENIZER_ERROR},
+	{"TOKENIZER_ENDOFINPUT",TOKENIZER_ENDOFINPUT},
+	{"TOKENIZER_NUMBER",TOKENIZER_NUMBER},
+	{"TOKENIZER_STRING",TOKENIZER_STRING},
+	{"TOKENIZER_VARIABLE",TOKENIZER_VARIABLE},
+	{"TOKENIZER_LET",TOKENIZER_LET},
+	{"TOKENIZER_PRINT",TOKENIZER_PRINT},
+	{"TOKENIZER_IF",TOKENIZER_IF},
+	{"TOKENIZER_THEN",TOKENIZER_THEN},
+	{"TOKENIZER_ELSE",TOKENIZER_ELSE},
+	{"TOKENIZER_FOR",TOKENIZER_FOR},
+	{"TOKENIZER_TO",TOKENIZER_TO},
+	{"TOKENIZER_NEXT",TOKENIZER_NEXT},
+	{"TOKENIZER_GOTO",TOKENIZER_GOTO},
+	{"TOKENIZER_GOSUB",TOKENIZER_GOSUB},
+	{"TOKENIZER_RETURN",TOKENIZER_RETURN},
+	{"TOKENIZER_CALL",TOKENIZER_CALL},
+	{"TOKENIZER_REM",TOKENIZER_REM},
+	{"TOKENIZER_PEEK",TOKENIZER_PEEK},
+	{"TOKENIZER_POKE",TOKENIZER_POKE},
+	{"TOKENIZER_END",TOKENIZER_END},
+	{"TOKENIZER_COMMA",TOKENIZER_COMMA},
+	{"TOKENIZER_SEMICOLON",TOKENIZER_SEMICOLON},
+	{"TOKENIZER_PLUS",TOKENIZER_PLUS},
+	{"TOKENIZER_MINUS",TOKENIZER_MINUS},
+	{"TOKENIZER_AND",TOKENIZER_AND},
+	{"TOKENIZER_OR",TOKENIZER_OR},
+	{"TOKENIZER_ASTR",TOKENIZER_ASTR},
+	{"TOKENIZER_SLASH",TOKENIZER_SLASH},
+	{"TOKENIZER_MOD",TOKENIZER_MOD},
+	{"TOKENIZER_HASH",TOKENIZER_HASH},
+	{"TOKENIZER_LEFTPAREN",TOKENIZER_LEFTPAREN},
+	{"TOKENIZER_RIGHTPAREN",TOKENIZER_RIGHTPAREN},
+	{"TOKENIZER_LT",TOKENIZER_LT},
+	{"TOKENIZER_GT",TOKENIZER_GT},
+	{"TOKENIZER_EQ",TOKENIZER_EQ},
+	{"TOKENIZER_LF",TOKENIZER_LF},
+	{"TOKENIZER_CR",TOKENIZER_CR}
+};
+
 /*---------------------------------------------------------------------------*/
-static int
-singlechar(void)
-{
+static int singlechar(void){
   if(*ptr == '\n') {
-    return TOKENIZER_CR;
-  } else if(*ptr == '\r'){
     return TOKENIZER_LF;
   } else if(*ptr == ',') {
     return TOKENIZER_COMMA;
@@ -116,13 +155,11 @@ singlechar(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
-get_next_token(void)
-{
+static int get_next_token(void){
   struct keyword_token const *kt;
   int i;
 
-  DEBUG_PRINTF("get_next_token(): '%s'\n", ptr);
+  DEBUG_PRINTF("get_next_token: %p.\n", ptr-startptr);
   
   // eat all whitespace
   while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r') ptr++;
@@ -138,16 +175,16 @@ get_next_token(void)
           nextptr = ptr + i;
           return TOKENIZER_NUMBER;
         } else {
-          DEBUG_PRINTF("get_next_token: error due to too short number\n");
+          DEBUG_PRINTF("get_next_token: error due to too short number.\n");
           return TOKENIZER_ERROR;
         }
       }
       if(!isdigit(ptr[i])) {
-        DEBUG_PRINTF("get_next_token: error due to malformed number\n");
+        DEBUG_PRINTF("get_next_token: error due to malformed number.\n");
         return TOKENIZER_ERROR;
       }
     }
-    DEBUG_PRINTF("get_next_token: error due to too long number\n");
+    DEBUG_PRINTF("get_next_token: error due to too long number.\n");
     return TOKENIZER_ERROR;
   } else if(singlechar()) {
     nextptr = ptr + 1;
@@ -173,21 +210,18 @@ get_next_token(void)
     return TOKENIZER_VARIABLE;
   }
 
-
   return TOKENIZER_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-void tokenizer_goto(const char *program)
-{
+void tokenizer_goto(const char *program){
   ptr = program;
   current_token = get_next_token();
 }
 /*---------------------------------------------------------------------------*/
-void
-tokenizer_init(const char *program)
-{
+void tokenizer_init(const char *program){
   ptr = program;
   prog = program;
+  startptr = program;
   current_token = get_next_token();
 }
 /*---------------------------------------------------------------------------*/
@@ -197,15 +231,13 @@ tokenizer_token(void)
   return current_token;
 }
 /*---------------------------------------------------------------------------*/
-void
-tokenizer_next(void)
-{
+void tokenizer_next(void){
 
   if(tokenizer_finished()) {
     return;
   }
 
-  DEBUG_PRINTF("tokenizer_next: %p\n", nextptr);
+  DEBUG_PRINTF("tokenizer_next: %p.\n", nextptr - startptr);
   ptr = nextptr;
 
   while(*ptr == ' ') {
@@ -223,7 +255,7 @@ tokenizer_next(void)
       tokenizer_next();
   }
 
-  DEBUG_PRINTF("tokenizer_next: '%s' %d\n", ptr, current_token);
+  DEBUG_PRINTF("tokenizer_next: %p %s.\n", ptr-startptr, tokenizer_token_name(current_token));
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -233,9 +265,7 @@ tokenizer_num(void)
   return atoi(ptr);
 }
 /*---------------------------------------------------------------------------*/
-void
-tokenizer_string(char *dest, int len)
-{
+void tokenizer_string(char *dest, int len){
   char *string_end;
   int string_len;
 
@@ -257,7 +287,7 @@ tokenizer_string(char *dest, int len)
 void
 tokenizer_error_print(void)
 {
-  DEBUG_PRINTF("tokenizer_error_print: '%s'\n", ptr);
+  DEBUG_PRINTF("tokenizer_error_print: %p.\n", ptr-startptr);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -272,8 +302,26 @@ tokenizer_variable_num(void)
   return *ptr - 'a';
 }
 /*---------------------------------------------------------------------------*/
-char const *
-tokenizer_pos(void)
-{
+char const *tokenizer_pos(void){
     return ptr;
+}
+
+char const *tokenizer_start(void) {
+	return startptr;
+}
+
+//char* tokenizer_token_name(int token){
+//	struct keyword_token kt;
+//	kt = keywords[token];
+//	char* name = kt.keyword;
+//	return(name);
+//}
+
+char *tokenizer_token_name(int token) {
+    for (int i = 0; tokens[i].keyword != NULL; i++) {
+        if (tokens[i].token == token) {
+            return tokens[i].keyword;  // return string
+        }
+    }
+    return NULL; // not found
 }
