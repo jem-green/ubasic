@@ -1,1 +1,1 @@
-cl run-ubasic.c ubasic.c tokenizer.c
+cl /Feubasic run-ubasic.c ubasic.c tokenizer.c
